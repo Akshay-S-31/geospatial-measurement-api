@@ -6,6 +6,7 @@ record emitted inside a :func:`bind_file_id` block, so processing logs can be fi
 """
 
 import logging
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -28,11 +29,13 @@ def _quote(value: Any) -> str:
 
 
 class KeyValueFormatter(logging.Formatter):
-    """Format records as ``ts=... level=... logger=... msg=... key=value ...``."""
+    """Format records as ``ts=... level=... logger=... msg=... key=value ...``, with UTC times."""
+
+    converter = time.gmtime
 
     def format(self, record: logging.LogRecord) -> str:
         fields: dict[str, Any] = {
-            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
             "level": record.levelname,
             "logger": record.name,
             "msg": record.getMessage(),

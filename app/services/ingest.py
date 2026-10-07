@@ -80,6 +80,11 @@ def upload_path(storage_dir: Path, file_id: str, file_type: FileType) -> Path:
     return upload_dir(storage_dir, file_id) / f"{file_id}{_EXTENSION_BY_FILE_TYPE[file_type]}"
 
 
+def delete_upload(storage_dir: Path, file_id: str) -> None:
+    """Remove everything stored for a file. A missing directory is not an error."""
+    shutil.rmtree(upload_dir(storage_dir, file_id), ignore_errors=True)
+
+
 def store_upload(
     stream: BinaryIO, filename: str | None, *, storage_dir: Path, max_bytes: int
 ) -> StoredUpload:

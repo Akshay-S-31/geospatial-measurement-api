@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.deps import SessionDep
 from app.core.logging import get_logger
+from app.services import reader
 
 logger = get_logger(__name__)
 
@@ -20,11 +21,12 @@ class HealthOut(BaseModel):
     status: str
     db: str
     gdal_version: str
+    kml_driver: str | None
 
 
 @router.get("/health", response_model=HealthOut, summary="Health check")
 def health(session: SessionDep, response: Response) -> HealthOut:
-    """Report whether the service can reach its database, and which GDAL build it runs on."""
+    """Report database reachability, the GDAL version and the driver used to read KML."""
     try:
         session.connection().execute(text("SELECT 1"))
         db_status = "ok"
@@ -37,4 +39,5 @@ def health(session: SessionDep, response: Response) -> HealthOut:
         status="ok" if db_status == "ok" else "degraded",
         db=db_status,
         gdal_version=pyogrio.__gdal_version_string__,
+        kml_driver=reader.kml_driver(),
     )

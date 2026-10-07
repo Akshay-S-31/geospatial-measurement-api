@@ -7,7 +7,8 @@ from fastapi import FastAPI
 from sqlmodel import Session
 
 from app import __version__
-from app.api.routes import health
+from app.api.errors import register_exception_handlers
+from app.api.routes import files, health
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger, setup_logging
 from app.db.session import create_db_engine, init_db
@@ -47,6 +48,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.engine = engine
+    register_exception_handlers(app)
+    app.include_router(files.router)
     app.include_router(health.router)
     return app
 
