@@ -16,7 +16,7 @@ dependencies = [
     "pydantic-settings>=2.4",
     "geopandas>=1.0",
     "pyogrio>=0.9",
-    "shapely>=2.0",
+    "shapely>=2.1",
     "pyproj>=3.6",
     "defusedxml>=0.7.1",
 ]
