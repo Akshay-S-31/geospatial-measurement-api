@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>survey</name>
+  <Folder>
+    <name>Fields</name>
+    <Placemark>
+      <name>North field</name>
+      <description>Paddy, surveyed by drone</description>
+      <Polygon><outerBoundaryIs><LinearRing><coordinates>76.3,10.02,12.0 76.306,10.02,12.0 76.307,10.025,12.0 76.301,10.026,12.0 76.3,10.02,12.0</coordinates></LinearRing></outerBoundaryIs></Polygon>
+    </Placemark>
+    <Placemark>
+      <name>South field</name>
+      <description>Coconut grove</description>
+      <Polygon><outerBoundaryIs><LinearRing><coordinates>76.301,10.012,12.0 76.308,10.013,12.0 76.307,10.018,12.0 76.3,10.017,12.0 76.301,10.012,12.0</coordinates></LinearRing></outerBoundaryIs></Polygon>
+    </Placemark>
+  </Folder>
+  <Folder>
+    <name>Roads</name>
+    <Placemark>
+      <name>Access road</name>
+      <description>Unpaved</description>
+      <LineString><coordinates>76.298,10.011,12.0 76.302,10.015,12.0 76.303,10.019,12.0 76.308,10.022,12.0</coordinates></LineString>
+    </Placemark>
+    <Placemark>
+      <name>Canal path</name>
+      <description>Footpath along the canal</description>
+      <LineString><coordinates>76.299,10.027,12.0 76.309,10.026,12.0</coordinates></LineString>
+    </Placemark>
+    <Placemark>
+      <name>Control point GCP-1</name>
+      <description>Ground control point</description>
+      <Point><coordinates>76.3035,10.019,12.0</coordinates></Point>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

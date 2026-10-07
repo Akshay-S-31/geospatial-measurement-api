@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import numpy as np
 import pandas as pd
-from shapely.geometry import LineString, MultiPolygon, Point, Polygon
+from shapely.geometry import LinearRing, LineString, MultiPolygon, Point, Polygon
 
 from app.services import geometry
 from app.services.measure import measure
@@ -125,3 +125,16 @@ def test_geojson_output() -> None:
         "type": "Point",
         "coordinates": [76.12345679, 10.0],
     }
+
+
+def test_geojson_polygons_follow_the_right_hand_rule() -> None:
+    """RFC 7946 section 3.1.6: exterior rings counter-clockwise, holes clockwise."""
+    clockwise_shell = [(76.0, 10.0), (76.0, 10.1), (76.1, 10.1), (76.1, 10.0), (76.0, 10.0)]
+    counter_clockwise_hole = [(76.02, 10.02), (76.08, 10.02), (76.08, 10.08), (76.02, 10.02)]
+    polygon = Polygon(clockwise_shell, holes=[counter_clockwise_hole])
+
+    shell, hole = json.loads(geometry.to_geojson(polygon))["coordinates"]
+
+    assert LinearRing(shell).is_ccw
+    assert not LinearRing(hole).is_ccw
+    assert sorted(map(tuple, shell)) == sorted(clockwise_shell)

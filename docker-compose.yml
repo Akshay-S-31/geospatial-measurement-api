@@ -1,0 +1,15 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
+      MAX_UNZIPPED_MB: ${MAX_UNZIPPED_MB:-500}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - geo-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  geo-data:

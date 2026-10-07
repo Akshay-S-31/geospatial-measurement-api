@@ -74,9 +74,11 @@ def to_geojson(geom: BaseGeometry) -> str:
 
     Coordinates are rounded to 8 decimal places (about 1 mm in degrees). That trims the
     floating-point noise reprojection adds without moving any vertex by a meaningful amount.
+    Polygon rings are wound as RFC 7946 asks, exterior counter-clockwise and holes clockwise,
+    which is the opposite of the Shapefile convention.
     """
     rounded = shapely.transform(geom, lambda coords: np.round(coords, GEOJSON_COORD_DECIMALS))
-    return shapely.to_geojson(rounded)
+    return shapely.to_geojson(shapely.orient_polygons(rounded))
 
 
 def json_safe(properties: Mapping[str, Any]) -> dict[str, Any]:
