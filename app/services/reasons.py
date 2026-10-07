@@ -27,8 +27,8 @@ REASON_MESSAGES: dict[ReasonCode, str] = {
         "The coordinate reference system is unknown, so the geometry cannot be measured."
     ),
     ReasonCode.MEASUREMENT_FAILED: (
-        "The geometry could not be projected; its coordinates may be outside the valid "
-        "range of the source CRS."
+        "The geometry could not be projected or measured; its coordinates may be outside "
+        "the valid range of the source CRS."
     ),
 }
 

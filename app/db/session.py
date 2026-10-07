@@ -7,6 +7,8 @@ from sqlalchemy import Engine, event
 from sqlalchemy.engine import make_url
 from sqlmodel import SQLModel, create_engine
 
+from app.db import models  # noqa: F401  (registers the tables on SQLModel.metadata)
+
 
 def create_db_engine(database_url: str) -> Engine:
     """Create an engine for ``database_url``.

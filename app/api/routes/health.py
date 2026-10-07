@@ -26,7 +26,7 @@ class HealthOut(BaseModel):
 def health(session: SessionDep, response: Response) -> HealthOut:
     """Report whether the service can reach its database, and which GDAL build it runs on."""
     try:
-        session.execute(text("SELECT 1"))
+        session.connection().execute(text("SELECT 1"))
         db_status = "ok"
     except SQLAlchemyError:
         logger.exception("health check could not reach the database")
