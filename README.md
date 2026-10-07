@@ -111,20 +111,20 @@ curl -i -X POST http://localhost:8000/api/files/ -F "file=@samples/kochi_plots.z
 
 ```
 HTTP/1.1 202 Accepted
-location: /api/files/8624c363a9074edb885fbcdb0442d193/
+location: /api/files/f6437f1913e8486db38a4e35d1f4f1d7/
 ```
 
 ```json
 {
-  "id": "8624c363a9074edb885fbcdb0442d193",
+  "id": "f6437f1913e8486db38a4e35d1f4f1d7",
   "filename": "kochi_plots.zip",
   "file_type": "SHAPEFILE",
   "status": "PENDING",
   "size_bytes": 1491,
-  "created_at": "2026-10-07T16:17:17Z",
+  "created_at": "2026-10-07T16:22:44Z",
   "links": {
-    "self": "/api/files/8624c363a9074edb885fbcdb0442d193/",
-    "measurements": "/api/files/8624c363a9074edb885fbcdb0442d193/measurements/"
+    "self": "/api/files/f6437f1913e8486db38a4e35d1f4f1d7/",
+    "measurements": "/api/files/f6437f1913e8486db38a4e35d1f4f1d7/measurements/"
   }
 }
 ```
@@ -147,12 +147,12 @@ status to `FAILED` with one of these codes in its `error`: `NO_SHAPEFILE`, `SHAP
 ### GET /api/files/{id}/
 
 ```bash
-curl -s http://localhost:8000/api/files/e3ebed0a52ca46bba1ef13ab352f406f/
+curl -s http://localhost:8000/api/files/b1e572d6d7744b2f929066ca93d3beb5/
 ```
 
 ```json
 {
-  "id": "e3ebed0a52ca46bba1ef13ab352f406f",
+  "id": "b1e572d6d7744b2f929066ca93d3beb5",
   "filename": "survey.kml",
   "file_type": "KML",
   "status": "COMPLETED",
@@ -167,12 +167,12 @@ curl -s http://localhost:8000/api/files/e3ebed0a52ca46bba1ef13ab352f406f/
   "warnings": ["Z coordinates were dropped; measurements are 2D (planimetric)."],
   "error": null,
   "size_bytes": 1517,
-  "created_at": "2026-10-07T16:17:31Z",
-  "processed_at": "2026-10-07T16:17:32Z",
-  "processing_ms": 23,
+  "created_at": "2026-10-07T16:22:44Z",
+  "processed_at": "2026-10-07T16:22:44Z",
+  "processing_ms": 15,
   "links": {
-    "self": "/api/files/e3ebed0a52ca46bba1ef13ab352f406f/",
-    "measurements": "/api/files/e3ebed0a52ca46bba1ef13ab352f406f/measurements/"
+    "self": "/api/files/b1e572d6d7744b2f929066ca93d3beb5/",
+    "measurements": "/api/files/b1e572d6d7744b2f929066ca93d3beb5/measurements/"
   }
 }
 ```
@@ -197,12 +197,12 @@ Errors: `404 FILE_NOT_FOUND`.
 | `include_geometry` | bool | true | `false` leaves the `geometry` key out for lighter responses |
 
 ```bash
-curl -s "http://localhost:8000/api/files/8624c363a9074edb885fbcdb0442d193/measurements/?limit=1"
+curl -s "http://localhost:8000/api/files/f6437f1913e8486db38a4e35d1f4f1d7/measurements/?limit=1"
 ```
 
 ```json
 {
-  "file_id": "8624c363a9074edb885fbcdb0442d193",
+  "file_id": "f6437f1913e8486db38a4e35d1f4f1d7",
   "crs": "EPSG:32643",
   "summary": {
     "feature_count": 4,
