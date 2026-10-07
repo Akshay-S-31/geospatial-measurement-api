@@ -1,16 +1,28 @@
-"""Builders for test geometries and ground-truth values.
+"""Builders for test geometries, test files and ground-truth values.
+
+No binary fixture is committed: every Shapefile, KML and zip used by the tests is generated here.
 
 Ground truth comes from ``pyproj.Geod``, which integrates directly on the WGS84 ellipsoid and uses
 no map projection at all. It is independent of the projection-based code under test.
 """
 
+import tempfile
+import zipfile
+from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
+from xml.sax.saxutils import escape
+
+import geopandas as gpd
 import shapely
 from pyproj import CRS, Geod, Transformer
 from shapely.geometry import LineString, MultiPolygon, Polygon
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 GEOD = Geod(ellps="WGS84")
 DENSIFY_DEG = 0.01
+KML_ALTITUDE = 12.5
+
+Placemark = tuple[str, BaseGeometry]
 
 
 def square(lon: float, lat: float, size_deg: float) -> Polygon:
@@ -86,3 +98,117 @@ def _ring_area(ring: BaseGeometry) -> float:
 def crs(code: str) -> CRS:
     """Shorthand for building a pyproj CRS in tests."""
     return CRS.from_user_input(code)
+
+
+def make_shapefile_zip(
+    tmp: Path,
+    gdf: gpd.GeoDataFrame,
+    *,
+    name: str = "layer",
+    include_prj: bool = True,
+    drop: Sequence[str] = (),
+    nested_dir: str | None = None,
+    extra_members: Iterable[tuple[str, bytes]] = (),
+) -> Path:
+    """Write ``gdf`` as a shapefile and zip it.
+
+    ``drop`` removes sidecar files by extension (``".dbf"``), ``nested_dir`` places the files in
+    a sub-folder of the archive, and ``extra_members`` adds arbitrary entries such as
+    ``__MACOSX`` junk.
+    """
+    removed = {*drop, *(() if include_prj else (".prj",))}
+    archive_path = _scratch_dir(tmp) / f"{name}.zip"
+    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in _write_shapefile(tmp, gdf, name):
+            if path.suffix not in removed:
+                archive.write(path, f"{nested_dir}/{path.name}" if nested_dir else path.name)
+        for member_name, content in extra_members:
+            archive.writestr(member_name, content)
+    return archive_path
+
+
+def make_multi_shapefile_zip(tmp: Path, layers: Mapping[str, gpd.GeoDataFrame]) -> Path:
+    """Zip several shapefiles, one per ``{name: gdf}`` entry, into one archive."""
+    archive_path = _scratch_dir(tmp) / "layers.zip"
+    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, gdf in layers.items():
+            for path in _write_shapefile(tmp, gdf, name):
+                archive.write(path, path.name)
+    return archive_path
+
+
+def make_kml(
+    tmp: Path,
+    folders: Mapping[str, Sequence[Placemark]],
+    *,
+    with_z: bool = True,
+    name: str = "test.kml",
+) -> Path:
+    """Write a KML document with one ``<Folder>`` per entry of ``folders``."""
+    body = "".join(
+        f"<Folder><name>{escape(folder)}</name>"
+        + "".join(
+            f"<Placemark><name>{escape(label)}</name>{_kml_geometry(geom, with_z)}</Placemark>"
+            for label, geom in placemarks
+        )
+        + "</Folder>"
+        for folder, placemarks in folders.items()
+    )
+    path = _scratch_dir(tmp) / name
+    path.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
+        f"{body}</Document></kml>",
+        encoding="utf-8",
+    )
+    return path
+
+
+def make_zip_slip(tmp: Path, member_name: str = "../../evil.txt") -> Path:
+    """A zip whose single member tries to escape the extraction directory."""
+    archive_path = _scratch_dir(tmp) / "slip.zip"
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr(zipfile.ZipInfo(member_name), b"escaped")
+    return archive_path
+
+
+def make_zip_bomb_like(tmp: Path, uncompressed_bytes: int) -> Path:
+    """A small zip that expands to ``uncompressed_bytes`` of zeros."""
+    archive_path = _scratch_dir(tmp) / "bomb.zip"
+    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("zeros.shp", b"\0" * uncompressed_bytes)
+    return archive_path
+
+
+def _scratch_dir(tmp: Path) -> Path:
+    return Path(tempfile.mkdtemp(dir=tmp))
+
+
+def _write_shapefile(tmp: Path, gdf: gpd.GeoDataFrame, name: str) -> list[Path]:
+    directory = _scratch_dir(tmp)
+    gdf.to_file(directory / f"{name}.shp")
+    return sorted(directory.iterdir())
+
+
+def _kml_geometry(geom: BaseGeometry, with_z: bool) -> str:
+    if isinstance(geom, BaseMultipartGeometry):
+        parts = "".join(_kml_geometry(part, with_z) for part in geom.geoms)
+        return f"<MultiGeometry>{parts}</MultiGeometry>"
+    if isinstance(geom, Polygon):
+        rings = f"<outerBoundaryIs>{_kml_ring(geom.exterior, with_z)}</outerBoundaryIs>"
+        rings += "".join(
+            f"<innerBoundaryIs>{_kml_ring(hole, with_z)}</innerBoundaryIs>"
+            for hole in geom.interiors
+        )
+        return f"<Polygon>{rings}</Polygon>"
+    return f"<{geom.geom_type}>{_kml_coordinates(geom, with_z)}</{geom.geom_type}>"
+
+
+def _kml_ring(ring: BaseGeometry, with_z: bool) -> str:
+    return f"<LinearRing>{_kml_coordinates(ring, with_z)}</LinearRing>"
+
+
+def _kml_coordinates(geom: BaseGeometry, with_z: bool) -> str:
+    suffix = f",{KML_ALTITUDE}" if with_z else ""
+    tuples = " ".join(f"{x},{y}{suffix}" for x, y in shapely.get_coordinates(geom).tolist())
+    return f"<coordinates>{tuples}</coordinates>"
