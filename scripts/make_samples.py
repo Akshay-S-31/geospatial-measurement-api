@@ -146,6 +146,7 @@ def kml_coordinates(coords: object) -> str:
 
 
 def main() -> None:
+    """Write the three sample files."""
     logging.basicConfig(format="%(message)s")
     logger.setLevel(logging.INFO)
     SAMPLES_DIR.mkdir(exist_ok=True)

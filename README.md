@@ -458,13 +458,14 @@ The squares sit 1.5 degrees east of the UTM zone's central meridian. UTM error d
 distance: it is -0.08 % on the central meridian and reaches about +0.18 % at the zone edge near the
 equator.
 
-Length and perimeter with local AEQD, by feature size:
+Length and perimeter with local AEQD, by feature size, at latitude 10. The line follows two sides
+of the square, so it does not pass through the projection centre:
 
-| Feature size | Perimeter error | Length error (diagonal) | Area error |
+| Feature size | Perimeter error | Line length error | Area error |
 |---|---|---|---|
 | 0.1 degree (about 11 km) | 0.0000 % | 0.0000 % | 0.0000 % |
-| 1 degree (about 111 km) | +0.0012 % | 0.0000 % | 0.0000 % |
-| 5 degrees (about 555 km) | +0.031 % | 0.0000 % | 0.0000 % |
+| 1 degree (about 111 km) | +0.0012 % | +0.0005 % | 0.0000 % |
+| 5 degrees (about 555 km) | +0.031 % | +0.008 % | 0.0000 % |
 
 Rounding the projection centre to 0.1 degree lets neighbouring features share one cached
 transformer. It costs no accuracy: LAEA is equal-area whatever its centre, and moving an AEQD centre

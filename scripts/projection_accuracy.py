@@ -28,20 +28,24 @@ DENSIFY_DEG = 0.01
 
 
 def square(lon: float, lat: float, size_deg: float) -> Polygon:
+    """A lon/lat square centred on ``(lon, lat)``."""
     half = size_deg / 2
     return shapely.box(lon - half, lat - half, lon + half, lat + half)
 
 
 def geodesic_area(polygon: Polygon) -> float:
+    """Geodesic area of a lon/lat polygon, in square metres."""
     area, _ = GEOD.geometry_area_perimeter(shapely.segmentize(polygon, DENSIFY_DEG))
     return abs(area)
 
 
 def geodesic_perimeter(polygon: Polygon) -> float:
+    """Geodesic length of a polygon's exterior ring, in metres."""
     return GEOD.geometry_length(shapely.segmentize(polygon.exterior, DENSIFY_DEG))
 
 
 def geodesic_length(line: LineString) -> float:
+    """Geodesic length of a lon/lat line, in metres."""
     return GEOD.geometry_length(shapely.segmentize(line, DENSIFY_DEG))
 
 
@@ -53,10 +57,12 @@ def planar_area(polygon: Polygon, crs: str) -> float:
 
 
 def error_percent(value: float, truth: float) -> str:
+    """Signed relative error of ``value`` against ``truth``, as a percentage."""
     return f"{100 * (value - truth) / truth:+.4f} %"
 
 
 def area_table() -> list[str]:
+    """Markdown table of area error by latitude for three projection strategies."""
     rows = [
         "| Latitude | Local LAEA (this service) | UTM zone 43N | Web Mercator |",
         "|---|---|---|---|",
@@ -73,26 +79,32 @@ def area_table() -> list[str]:
 
 
 def length_table() -> list[str]:
+    """Markdown table of perimeter, length and area error by feature size.
+
+    The line follows two sides of the square, so it does not pass through the projection centre,
+    where an azimuthal equidistant projection would be exact by construction.
+    """
     rows = [
-        "| Feature size | Latitude | Perimeter (AEQD) | Diagonal line (AEQD) | Area (LAEA) |",
+        "| Feature size | Latitude | Perimeter (AEQD) | L-shaped line (AEQD) | Area (LAEA) |",
         "|---|---|---|---|---|",
     ]
     for size in SIZES_DEG:
         for lat in (10, 60):
             polygon = square(LONGITUDE, lat, size)
             min_lon, min_lat, max_lon, max_lat = polygon.bounds
-            diagonal = LineString([(min_lon, min_lat), (max_lon, max_lat)])
+            line = LineString([(min_lon, min_lat), (max_lon, min_lat), (max_lon, max_lat)])
             outcome = measure(polygon, WGS84)
             rows.append(
                 f"| {size} deg | {lat} "
                 f"| {error_percent(outcome.perimeter_m, geodesic_perimeter(polygon))} "
-                f"| {error_percent(measure(diagonal, WGS84).length_m, geodesic_length(diagonal))} "
+                f"| {error_percent(measure(line, WGS84).length_m, geodesic_length(line))} "
                 f"| {error_percent(outcome.area_m2, geodesic_area(polygon))} |"
             )
     return rows
 
 
 def densification_effect() -> str:
+    """Area error of a large square with and without densifying its edges."""
     polygon = square(LONGITUDE, 45, 5.0)
     truth = geodesic_area(polygon)
     with_densify = error_percent(measure(polygon, WGS84).area_m2, truth)
@@ -101,6 +113,7 @@ def densification_effect() -> str:
 
 
 def main() -> None:
+    """Log the tables."""
     logging.basicConfig(format="%(message)s")
     logger.setLevel(logging.INFO)
     logger.info("Area error of a 0.1 deg square at longitude %s, vs geodesic\n", LONGITUDE)
