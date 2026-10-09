@@ -1,6 +1,6 @@
 # Geospatial File Measurement API
 
-[![CI](https://github.com/OWNER/geospatial-measurement-api/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/geospatial-measurement-api/actions/workflows/ci.yml)
+[![CI](https://github.com/Akshay-S-31/geospatial-measurement-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Akshay-S-31/geospatial-measurement-api/actions/workflows/ci.yml)
 
 A FastAPI service that accepts a zipped Shapefile or a KML file, extracts every feature, and returns
 its measurements: area and perimeter for polygons, length for lines. Nothing is ever measured in
