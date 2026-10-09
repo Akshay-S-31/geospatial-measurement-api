@@ -609,10 +609,30 @@ Manual checks worth doing with real data:
 - **No authentication.** Anyone who can reach the service can upload, read and delete.
 
 ## Learnings
-<!-- TODO: 4–6 bullets covering:
-     - What was surprising about projections (e.g. the Web Mercator numbers)?
-     - What broke first with real KML/shapefiles?
-     - What to do differently with more time? -->
+
+- **A metric CRS is not automatically a measuring CRS.** Web Mercator is in metres and still
+  doubles area at 45 degrees and is 3.8 % off at Kerala's latitude. That is why a source that is
+  already projected is never measured in place, and why the service chooses the projection itself.
+- **No single projection is right for both area and length.** An equal-area projection distorts
+  distance and an equidistant one distorts area, so each measurement gets its own. UTM, the usual
+  default, turned out to be less uniform than expected: its error depends on the distance from the
+  zone's central meridian, from -0.08 % on it to about +0.18 % at the zone edge.
+- **Reprojecting vertices is not reprojecting a shape.** A straight edge in one CRS is a curve in
+  another, so transforming only the corners of a large polygon changes its area (0.10 % for a
+  5 degree square). Densifying has to happen before the transform, in the source CRS.
+- **The ground truth needs testing too.** The first failing test was caused by the reference value,
+  not the code: `pyproj.Geod` signs a ring's area by its winding order, so a hole wound the same way
+  as its shell was added instead of subtracted. Later, a length check looked perfect only because
+  the test line passed through the projection centre, where an equidistant projection is exact by
+  construction.
+- **Real files are messier than the formats suggest.** The KML driver adds a dozen columns no file
+  fills, two folders can share a name, placemarks can have no geometry, Shapefile rings are wound
+  the opposite way to GeoJSON, zips made on macOS carry `._name.shp` resource forks that look like
+  shapefiles, and `.prj` files go missing. Most of the reader and its tests exist for these cases.
+- **With more time** the first changes would be a durable task queue instead of in-process
+  background tasks, a way for the client to supply the CRS for a file without a `.prj`, splitting
+  features at the antimeridian, and geodesic length for very large features, where the equidistant
+  projection's error starts to show (0.03 % at 5 degrees).
 
 ## Future scope
 
